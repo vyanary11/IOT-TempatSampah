@@ -11,7 +11,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -54,10 +53,13 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
         buttonCariRute.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                hitungRuteTerpendek();
             }
         });
         return view;
+    }
+
+    private void hitungRuteTerpendek() {
     }
 
 
@@ -77,7 +79,6 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-
         final CollectionReference collectionReference = db.collection("tempat_sampah");
         collectionReference.addSnapshotListener(new EventListener<QuerySnapshot>() {
             @Override
@@ -95,7 +96,6 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
                     GeoPoint geoPoint = document.getGeoPoint("lokasi");
                     MarkerOptions markerOptions = new MarkerOptions().position(new LatLng(geoPoint.getLatitude(), geoPoint.getLongitude()));
                     markerOptions.title(document.getData().get("nama").toString().trim());
-
                     String statusTerisi;
                     String statusBaterai;
                     if (document.getData().get("status_terisi").equals("0")){
@@ -131,6 +131,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
                 }
             }
         });
+
         /*db.collection("tempat_sampah")
             .get()
             .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
