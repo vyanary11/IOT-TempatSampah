@@ -6,6 +6,7 @@ import androidx.core.view.GravityCompat;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import android.view.MenuItem;
 import com.google.android.material.navigation.NavigationView;
+import com.pratamatechnocraft.smarttempatsampah.Fragment.HistoriFragment;
 import com.pratamatechnocraft.smarttempatsampah.Fragment.HomeFragment;
 
 
@@ -15,6 +16,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
+
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
     public Fragment fragment = null;
@@ -69,6 +71,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         idMenuItem=id;
         if (id == R.id.nav_home) {
             fragment = new HomeFragment();
+        } else if(id == R.id.nav_history){
+            fragment = new HistoriFragment();
         } else if (id == R.id.nav_logout) {
             //sessionManager.logout();
         }
