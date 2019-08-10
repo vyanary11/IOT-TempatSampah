@@ -6,11 +6,12 @@ import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.os.Bundle;
-import android.util.Log;
+
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -25,23 +26,26 @@ import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.firebase.firestore.CollectionReference;
-import com.google.firebase.firestore.EventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.FirebaseFirestoreException;
-import com.google.firebase.firestore.GeoPoint;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
+import com.pratamatechnocraft.smarttempatsampah.Model.TempatSampah;
 import com.pratamatechnocraft.smarttempatsampah.R;
 
-import static android.content.ContentValues.TAG;
+import java.util.ArrayList;
 
 public class HomeFragment extends Fragment implements OnMapReadyCallback {
     private GoogleMap mMap;
     View view;
+    DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
     FirebaseFirestore db = FirebaseFirestore.getInstance();
     Button buttonCariRute;
+    private ArrayList<TempatSampah> tempatSampahArrayList;
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -77,112 +81,73 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
     }
 
     @Override
-    public void onMapReady(GoogleMap googleMap) {
+    public void onMapReady(final GoogleMap googleMap) {
         mMap = googleMap;
-        final CollectionReference collectionReference = db.collection("tempat_sampah");
-        collectionReference.addSnapshotListener(new EventListener<QuerySnapshot>() {
-            @Override
-            public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException e) {
-                if (e != null) {
-                    Log.w(TAG, "Listen failed.", e);
-                    return;
-                }
-                mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+        mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
 
-                mMap.clear();
-                int i=0;
-                for (QueryDocumentSnapshot document : value) {
-                    Log.d(TAG, document.getId() + " => " + document.getData());
-                    GeoPoint geoPoint = document.getGeoPoint("lokasi");
-                    MarkerOptions markerOptions = new MarkerOptions().position(new LatLng(geoPoint.getLatitude(), geoPoint.getLongitude()));
-                    markerOptions.title(document.getData().get("nama").toString().trim());
+        mMap.clear();
+        databaseReference.child("lokasi_utama").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                MarkerOptions markerAwal = new MarkerOptions().position(new LatLng(-8.13967, 113.719998));
+                markerAwal.title("Dinas Kebersihan Kab. Jember");
+                markerAwal.icon(bitmapDescriptorFromVector(getActivity(), R.drawable.ic_garbage_truck));
+                mMap.addMarker(markerAwal);
+                mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+                    @Override
+                    public boolean onMarkerClick(Marker marker) {
+                        return false;
+                    }
+                });
+                CameraPosition googlePlex = CameraPosition.builder()
+                        .target(new LatLng(-8.13967, 113.719998))
+                        .zoom(15)
+                        .bearing(0)
+                        .tilt(45)
+                        .build();
+                mMap.animateCamera(CameraUpdateFactory.newCameraPosition(googlePlex));
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+        databaseReference.child("tempat_sampah").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                for (DataSnapshot dataSnapshot1 : dataSnapshot.getChildren()){
+                    MarkerOptions markerOptions = new MarkerOptions().position(new LatLng(dataSnapshot1.child("latitude").getValue(Double.class), dataSnapshot1.child("longtitude").getValue(Double.class)));
+                    markerOptions.title(dataSnapshot1.child("nama").getValue().toString().trim());
                     String statusTerisi;
                     String statusBaterai;
-                    if (document.getData().get("status_terisi").equals("0")){
+                    if (dataSnapshot1.child("status_terisi").getValue().toString().equals("0")){
                         statusTerisi="Kosong";
                         markerOptions.icon(bitmapDescriptorFromVector(getActivity(),R.drawable.ic_trash_kosong));
-                    }else if(document.getData().get("status_terisi").equals("1")){
+                    }else if(dataSnapshot1.child("status_terisi").getValue().toString().equals("1")){
                         statusTerisi="Setengah";
                         markerOptions.icon(bitmapDescriptorFromVector(getActivity(),R.drawable.ic_trash_setengah));
                     }else{
                         statusTerisi="Penuh";
                         markerOptions.icon(bitmapDescriptorFromVector(getActivity(),R.drawable.ic_trash_penuh));
                     }
-                    if (document.getData().get("status_baterai").equals("0")){
+                    if (dataSnapshot1.child("status_baterai").getValue().toString().equals("0")){
                         statusBaterai="Kosong";
-                    }else if(document.getData().get("status_baterai").equals("1")){
+                    }else if(dataSnapshot1.child("status_baterai").getValue().toString().equals("1")){
                         statusBaterai="Setengah";
                     }else{
                         statusBaterai="Penuh";
                     }
-                    markerOptions.snippet(statusTerisi);
-                    mMap.addMarker(markerOptions);
-                    if (i==0){
-                        CameraPosition googlePlex = CameraPosition.builder()
-                                .target(new LatLng(geoPoint.getLatitude(),geoPoint.getLongitude()))
-                                .zoom(15)
-                                .bearing(0)
-                                .tilt(45)
-                                .build();
-
-                        mMap.animateCamera(CameraUpdateFactory.newCameraPosition(googlePlex));
-                    }
-                    i++;
+                    googleMap.addMarker(markerOptions);
+                    googleMap.setInfoWindowAdapter(new GoogleMapsInfoWindow(statusTerisi,statusBaterai));
                 }
             }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
         });
-
-        /*db.collection("tempat_sampah")
-            .get()
-            .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                @Override
-                public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                    if (task.isSuccessful()) {
-                        int i=0;
-                        for (QueryDocumentSnapshot document : task.getResult()) {
-                            Log.d(TAG, document.getId() + " => " + document.getData());
-                            GeoPoint geoPoint = document.getGeoPoint("lokasi");
-                            MarkerOptions markerOptions = new MarkerOptions().position(new LatLng(geoPoint.getLatitude(), geoPoint.getLongitude()));
-                            markerOptions.title(document.getData().get("nama").toString().trim());
-
-                            String statusTerisi;
-                            String statusBaterai;
-                            if (document.getData().get("status_terisi").equals("0")){
-                                statusTerisi="Kosong";
-                                markerOptions.icon(bitmapDescriptorFromVector(getActivity(),R.drawable.ic_trash_kosong));
-                            }else if(document.getData().get("status_terisi").equals("1")){
-                                statusTerisi="Setengah";
-                                markerOptions.icon(bitmapDescriptorFromVector(getActivity(),R.drawable.ic_trash_setengah));
-                            }else{
-                                statusTerisi="Penuh";
-                                markerOptions.icon(bitmapDescriptorFromVector(getActivity(),R.drawable.ic_trash_penuh));
-                            }
-                            if (document.getData().get("status_baterai").equals("0")){
-                                statusBaterai="Kosong";
-                            }else if(document.getData().get("status_baterai").equals("1")){
-                                statusBaterai="Setengah";
-                            }else{
-                                statusBaterai="Penuh";
-                            }
-                            markerOptions.snippet(statusTerisi);
-                            mMap.addMarker(markerOptions);
-                            if (i==0){
-                                CameraPosition googlePlex = CameraPosition.builder()
-                                        .target(new LatLng(geoPoint.getLatitude(),geoPoint.getLongitude()))
-                                        .zoom(15)
-                                        .bearing(0)
-                                        .tilt(45)
-                                        .build();
-
-                                mMap.animateCamera(CameraUpdateFactory.newCameraPosition(googlePlex));
-                            }
-                            i++;
-                        }
-                    } else {
-                        Log.w(TAG, "Error getting documents.", task.getException());
-                    }
-                }
-            });*/
     }
 
     private BitmapDescriptor bitmapDescriptorFromVector(Context context, int vectorResId) {
@@ -201,5 +166,36 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
         Location.distanceBetween(latLon1.latitude, latLon1.longitude,
                 latLon2.latitude, latLon2.longitude, result);
         return (double) result[0];
+    }
+
+    class GoogleMapsInfoWindow implements GoogleMap.InfoWindowAdapter {
+
+        private final View viewGoogleMapsInfoWindow;
+        private String statusTerisi;
+        private String statusBaterai;
+        public GoogleMapsInfoWindow(String statusTerisi, String statusBaterai) {
+            viewGoogleMapsInfoWindow = getLayoutInflater().inflate(R.layout.fragment_info_window_google_maps, null);
+            this.statusBaterai= statusBaterai;
+            this.statusTerisi = statusTerisi;
+
+        }
+
+        @Override
+        public View getInfoWindow(Marker marker) {
+            return null;
+        }
+
+        @Override
+        public View getInfoContents(Marker marker) {
+            TextView txtTitle, txtStatusTerisi, txtStatusBaterai;
+            txtTitle = viewGoogleMapsInfoWindow.findViewById(R.id.txtTitle);
+            txtStatusTerisi = viewGoogleMapsInfoWindow.findViewById(R.id.txtStatusTerisi);
+            txtStatusBaterai = viewGoogleMapsInfoWindow.findViewById(R.id.txtStatusBaterai);
+
+            txtTitle.setText(marker.getTitle());
+            txtStatusTerisi.setText(statusTerisi);
+            txtStatusBaterai.setText(statusBaterai);
+            return viewGoogleMapsInfoWindow;
+        }
     }
 }
