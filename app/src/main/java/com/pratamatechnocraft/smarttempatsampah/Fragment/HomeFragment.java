@@ -1,10 +1,12 @@
 package com.pratamatechnocraft.smarttempatsampah.Fragment;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Bundle;
 
 import android.view.LayoutInflater;
@@ -12,6 +14,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -28,6 +31,9 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -46,10 +52,23 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
     FirebaseFirestore db = FirebaseFirestore.getInstance();
     Button buttonCariRute;
     private ArrayList<TempatSampah> tempatSampahArrayList;
+    NavigationView navigationView;
+    private int jenisFragment;
+    private Long idHistori;
+    private Polyline currentPolyline;
+    private MarkerOptions markerAwal;
+
+    public HomeFragment(int jenisFragment, Long idHistori) {
+        this.jenisFragment = jenisFragment;
+        this.idHistori = idHistori;
+    }
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         view = inflater.inflate( R.layout.fragment_home, container, false);
+        navigationView = getActivity().findViewById(R.id.nav_view);
+        navigationView.setCheckedItem(R.id.nav_home);
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
@@ -64,6 +83,25 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
     }
 
     private void hitungRuteTerpendek() {
+        String goolgeMap = "com.google.android.apps.maps"; // identitas package aplikasi google masps android
+        Uri gmmIntentUri;
+        Intent mapIntent;
+        String masjid_agung_demak = "-6.894649906672214,110.63718136399984";
+        // Buat Uri dari intent string. Gunakan hasilnya untuk membuat Intent.
+        gmmIntentUri = Uri.parse("https://www.google.com/maps/dir/?api=1&origin=Paris,France&destination=Cherbourg,France&travelmode=driving&waypoints=Versailles,France%7CChartres,France%7CLe+Mans,France%7CCaen,France");
+
+        // Buat Uri dari intent gmmIntentUri. Set action => ACTION_VIEW
+        mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+
+        // Set package Google Maps untuk tujuan aplikasi yang di Intent yaitu google maps
+        mapIntent.setPackage(goolgeMap);
+
+        if (mapIntent.resolveActivity(getActivity().getPackageManager()) != null) {
+            startActivity(mapIntent);
+        } else {
+            Toast.makeText(getContext(), "Google Maps Belum Terinstal. Install Terlebih dahulu.",
+                    Toast.LENGTH_LONG).show();
+        }
     }
 
 
@@ -89,7 +127,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
         databaseReference.child("lokasi_utama").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                MarkerOptions markerAwal = new MarkerOptions().position(new LatLng(-8.13967, 113.719998));
+                markerAwal = new MarkerOptions().position(new LatLng(-8.13967, 113.719998));
                 markerAwal.title("Dinas Kebersihan Kab. Jember");
                 markerAwal.icon(bitmapDescriptorFromVector(getActivity(), R.drawable.ic_garbage_truck));
                 mMap.addMarker(markerAwal);

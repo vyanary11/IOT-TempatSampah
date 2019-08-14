@@ -12,12 +12,13 @@
         android:orientation="horizontal">
 
         <androidx.cardview.widget.CardView
-            android:clickable="true"
-            android:foreground="?android:attr/selectableItemBackground"
-            app:cardBackgroundColor="@color/cardview_light_background"
+            android:id="@+id/cardViewDataHistori"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1">
+            android:layout_weight="1"
+            android:clickable="true"
+            android:foreground="?android:attr/selectableItemBackground"
+            app:cardBackgroundColor="@color/cardview_light_background">
 
             <LinearLayout
                 android:layout_width="match_parent"

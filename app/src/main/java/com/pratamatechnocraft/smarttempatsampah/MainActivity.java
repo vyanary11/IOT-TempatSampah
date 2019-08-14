@@ -4,14 +4,21 @@ import android.os.Bundle;
 
 import androidx.core.view.GravityCompat;
 import androidx.appcompat.app.ActionBarDrawerToggle;
+
+import android.util.Log;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.ImageView;
+import android.widget.TextView;
+
+import com.bumptech.glide.Glide;
 import com.google.android.material.navigation.NavigationView;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.pratamatechnocraft.smarttempatsampah.Fragment.HistoriFragment;
 import com.pratamatechnocraft.smarttempatsampah.Fragment.HomeFragment;
-
-
+import com.pratamatechnocraft.smarttempatsampah.Service.SessionManager;
 import androidx.drawerlayout.widget.DrawerLayout;
-
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
@@ -20,15 +27,17 @@ import androidx.fragment.app.FragmentTransaction;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
     public Fragment fragment = null;
-    int fragmentLast;
+    int fragmentLast = R.id.nav_home;
     NavigationView navigationView;
-    //SessionManager sessionManager;
-    int idMenuItem=R.id.nav_home;
-    int tmpidMenuItem;
+    SessionManager sessionManager;
+    private FirebaseAuth firebaseAuth;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        sessionManager = new SessionManager(this);
+        firebaseAuth = FirebaseAuth.getInstance();
+        Log.d("TAG", "onCreate: "+firebaseAuth.getUid());
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
@@ -36,11 +45,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
         toggle.syncState();
+        sessionManager = new SessionManager( this );
+        sessionManager.checkLogin();
+
         navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
-        navigationView.setCheckedItem( idMenuItem );
-        displaySelectedScreen(idMenuItem);
-
+        navigationView.setCheckedItem( R.id.nav_home );
+        displaySelectedScreen(R.id.nav_home);
+        FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
+        View headerView = navigationView.getHeaderView(0);
+        TextView txtEmailUserLogin = headerView.findViewById(R.id.txtEmailUserLogin);
+        txtEmailUserLogin.setText(firebaseUser.getEmail());
     }
 
     @Override
@@ -48,33 +63,33 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         DrawerLayout drawer = (DrawerLayout) findViewById( R.id.drawer_layout );
         if (drawer.isDrawerOpen( GravityCompat.START )) {
             drawer.closeDrawer( GravityCompat.START );
-            //sessionManager.checkLogin();
+            sessionManager.checkLogin();
         } else {
-            navigationView.setCheckedItem( tmpidMenuItem );
-            super.onBackPressed();
-            //sessionManager.checkLogin();
+            MenuItem item = navigationView.getCheckedItem();
+            if (fragmentLast!=R.id.nav_home) {
+                super.onBackPressed();
+                sessionManager.checkLogin();
+            }
         }
+
     }
 
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         displaySelectedScreen( item.getItemId() );
-        tmpidMenuItem = idMenuItem;
-        idMenuItem=item.getItemId();
         return true;
     }
 
     private void displaySelectedScreen(int itemId) {
         int id = itemId;
-        tmpidMenuItem = idMenuItem;
-        idMenuItem=id;
         if (id == R.id.nav_home) {
-            fragment = new HomeFragment();
+            fragment = new HomeFragment(0,null);
         } else if(id == R.id.nav_history){
             fragment = new HistoriFragment();
         } else if (id == R.id.nav_logout) {
-            //sessionManager.logout();
+            sessionManager.logout();
+
         }
 
         if (fragment != null) {

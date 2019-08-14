@@ -301,6 +301,6 @@
 
 
     <color name="black_overlay">#66000000</color>
-    <color name="active_dots">#fffafa</color>
+    <color name="active_dots">#FFFAFA</color>
     <color name="inactive_dots">#83878b</color>
 </resources>
