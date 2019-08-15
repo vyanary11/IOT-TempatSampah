@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Dijkstra{
-    private HashMap<String, HashMap<String, Double>> locations = new HashMap<String, HashMap<String, Double>>();
+    /*private HashMap<String, HashMap<String, Double>> locations = new HashMap<String, HashMap<String, Double>>();
     private HashMap<String, Double> longitudes = new HashMap<String, Double>();
     private HashMap<String, Double> latitudes = new HashMap<String, Double>();
     private JSONArray shortest_route = new JSONArray();
@@ -40,5 +40,5 @@ public class Dijkstra{
             all_permutations =
         }
         return all_permutations;
-    }
+    }*/
 }

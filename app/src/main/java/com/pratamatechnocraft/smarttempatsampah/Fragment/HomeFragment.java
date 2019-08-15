@@ -42,6 +42,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.pratamatechnocraft.smarttempatsampah.Model.TempatSampah;
 import com.pratamatechnocraft.smarttempatsampah.R;
+import com.pratamatechnocraft.smarttempatsampah.Utils.directionhelpers.TaskLoadedCallback;
 
 import java.util.ArrayList;
 
@@ -86,9 +87,12 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
         String goolgeMap = "com.google.android.apps.maps"; // identitas package aplikasi google masps android
         Uri gmmIntentUri;
         Intent mapIntent;
-        String masjid_agung_demak = "-6.894649906672214,110.63718136399984";
+        Double longitudeOrigin=markerAwal.getPosition().longitude;
+        Double latitudeOrigin=markerAwal.getPosition().latitude;
+        String origin = latitudeOrigin.toString()+","+longitudeOrigin.toString();
+        String wayPoints= "-8.158879,113.721337%7C-8.164735,113.717475%7C-8.145681,113.724939";
         // Buat Uri dari intent string. Gunakan hasilnya untuk membuat Intent.
-        gmmIntentUri = Uri.parse("https://www.google.com/maps/dir/?api=1&origin=Paris,France&destination=Cherbourg,France&travelmode=driving&waypoints=Versailles,France%7CChartres,France%7CLe+Mans,France%7CCaen,France");
+        gmmIntentUri = Uri.parse("https://www.google.com/maps/dir/?api=1&origin="+origin+"&destination="+origin+"&travelmode=driving&waypoints="+wayPoints);
 
         // Buat Uri dari intent gmmIntentUri. Set action => ACTION_VIEW
         mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
