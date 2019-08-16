@@ -14,6 +14,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -233,7 +234,9 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
 
         @Override
         public View getInfoContents(final Marker marker) {
+            final ImageView imageViewMarkerInfoWindow;
             final TextView txtTitle, txtStatusTerisi, txtStatusBaterai;
+            imageViewMarkerInfoWindow = viewGoogleMapsInfoWindow.findViewById(R.id.imageViewMarkerInfoWindow);
             txtTitle = viewGoogleMapsInfoWindow.findViewById(R.id.txtTitle);
             txtStatusTerisi = viewGoogleMapsInfoWindow.findViewById(R.id.txtStatusTerisi);
             txtStatusBaterai = viewGoogleMapsInfoWindow.findViewById(R.id.txtStatusBaterai);
@@ -247,6 +250,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
                 txtStatusTerisi.setVisibility(View.VISIBLE);
                 txtStatusTerisi.setText(stringArrayListStatus.get(marker.getTitle()).get("statusTerisi"));
                 txtStatusBaterai.setText(stringArrayListStatus.get(marker.getTitle()).get("statusBaterai"));
+                
                 databaseReference.child("tempat_sampah").child(stringArrayListStatus.get(marker.getTitle()).get("key")).addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
