@@ -80,7 +80,7 @@ public class PointsParser extends AsyncTask<String, Integer, List<List<HashMap<S
                 lineOptions.width(20);
                 lineOptions.color(Color.BLUE);
             }
-            Log.d("mylog", "onPostExecute lineoptions decoded");
+            Log.d("mylog", "onPostExecute lineoptions  decoded");
         }
 
         // Drawing polyline in the Google Map for the i-th route
