@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.net.Uri;
@@ -43,18 +44,18 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.pratamatechnocraft.smarttempatsampah.MainActivity;
-import com.pratamatechnocraft.smarttempatsampah.Model.InfoWindowMap;
 import com.pratamatechnocraft.smarttempatsampah.Model.TempatSampah;
 import com.pratamatechnocraft.smarttempatsampah.R;
-import com.pratamatechnocraft.smarttempatsampah.Utils.directionhelpers.FetchURL;
-import com.pratamatechnocraft.smarttempatsampah.Utils.directionhelpers.TaskLoadedCallback;
+import com.pratamatechnocraft.smarttempatsampah.Utils.directionLib.DirectionFinder;
+import com.pratamatechnocraft.smarttempatsampah.Utils.directionLib.DirectionFinderListener;
+import com.pratamatechnocraft.smarttempatsampah.Utils.directionLib.Route;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class HomeFragment extends Fragment implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener, GoogleMap.OnInfoWindowCloseListener, TaskLoadedCallback {
+public class HomeFragment extends Fragment implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener, GoogleMap.OnInfoWindowCloseListener, DirectionFinderListener {
     private GoogleMap mMap;
     View view;
     DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
@@ -64,11 +65,11 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Google
     NavigationView navigationView;
     private int jenisFragment;
     private Long idHistori;
-    private Polyline currentPolyline;
     private MarkerOptions markerAwal;
     private HashMap<String, HashMap<String, String>> hashMapHashMapStatus = new HashMap<>();
     private boolean isInfoWindowShown = false;
     String lastMarkerKlik;
+    private List<Polyline> polylinePaths = new ArrayList<>();
 
     public HomeFragment(int jenisFragment, Long idHistori) {
         this.jenisFragment = jenisFragment;
@@ -88,14 +89,22 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Google
         buttonCariRute.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                hitungRuteTerpendek();
+                sendRequest();
             }
         });
         return view;
     }
 
+    private void sendRequest() {
+        String wayPoints = "-8.158879,113.721337%7C-8.164735,113.717475%7C-8.145681,113.724939";
+        try {
+            new DirectionFinder(this, "-8.141689, 113.721291", "-8.155527, 113.712525", wayPoints).execute();
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+    }
+
     private void hitungRuteTerpendek() {
-        new FetchURL(getContext()).execute(getUrl(markerAwal.getPosition(), new LatLng(-8.141689, 113.721291), "driving"), "driving");
         /*String goolgeMap = "com.google.android.apps.maps"; // identitas package aplikasi google masps android
         Uri gmmIntentUri;
         Intent mapIntent;
@@ -297,26 +306,32 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Google
         }
     }
 
-    private String getUrl(LatLng origin, LatLng dest, String directionMode) {
-        // Origin of route
-        String str_origin = "origin=" + origin.latitude + "," + origin.longitude;
-        // Destination of route
-        String str_dest = "destination=" + dest.latitude + "," + dest.longitude;
-        // Mode
-        String mode = "mode=" + directionMode;
-        // Building the parameters to the web service
-        String parameters = str_origin + "&" + str_dest + "&" + mode;
-        // Output format
-        String output = "json";
-        // Building the url to the web service
-        String url = "https://maps.googleapis.com/maps/api/directions/" + output + "?" + parameters + "&key=" + getString(R.string.google_maps_key);
-        return url;
+    @Override
+    public void onDirectionFinderStart() {
+
+        if (polylinePaths != null) {
+            for (Polyline polyline:polylinePaths ) {
+                polyline.remove();
+            }
+        }
     }
 
     @Override
-    public void onTaskDone(Object... values) {
-        if (currentPolyline != null)
-            currentPolyline.remove();
-        currentPolyline = mMap.addPolyline((PolylineOptions) values[0]);
+    public void onDirectionFinderSuccess(List<Route> routes) {
+        polylinePaths = new ArrayList<>();
+
+        for (Route route : routes) {
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(route.startLocation, 16));
+
+            PolylineOptions polylineOptions = new PolylineOptions().
+                    geodesic(true).
+                    color(Color.BLUE).
+                    width(10);
+
+            for (int i = 0; i < route.points.size(); i++)
+                polylineOptions.add(route.points.get(i));
+
+            polylinePaths.add(mMap.addPolyline(polylineOptions));
+        }
     }
 }
