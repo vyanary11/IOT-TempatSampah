@@ -1,29 +1,23 @@
-package com.pratamatechnocraft.smarttempatsampah.Fragment;
+package com.pratamatechnocraft.smarttempatsampah;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
 
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
-import android.location.Location;
-import android.net.Uri;
 import android.os.Bundle;
-
 import android.util.Log;
-import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TableLayout;
 import android.widget.TextView;
-import android.widget.Toast;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.core.content.ContextCompat;
-import androidx.fragment.app.Fragment;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -37,133 +31,51 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
-import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.pratamatechnocraft.smarttempatsampah.HasilCariActivity;
-import com.pratamatechnocraft.smarttempatsampah.Model.TempatSampah;
-import com.pratamatechnocraft.smarttempatsampah.R;
+import com.pratamatechnocraft.smarttempatsampah.Utils.directionLib.DirectionFinder;
+import com.pratamatechnocraft.smarttempatsampah.Utils.directionLib.DirectionFinderListener;
+import com.pratamatechnocraft.smarttempatsampah.Utils.directionLib.Route;
+
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class HomeFragment extends Fragment implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener, GoogleMap.OnInfoWindowCloseListener {
+public class HasilCariActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener, GoogleMap.OnInfoWindowCloseListener, DirectionFinderListener {
+
     private GoogleMap mMap;
-    View view;
-    DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
-    FirebaseFirestore db = FirebaseFirestore.getInstance();
-    Button buttonCariRute;
-    private ArrayList<TempatSampah> waypointS;
-    private List<Marker> waypointsMarkers = new ArrayList<>();
-    NavigationView navigationView;
+    private DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
     private MarkerOptions markerAwal;
     private HashMap<String, HashMap<String, String>> hashMapHashMapStatus = new HashMap<>();
     private boolean isInfoWindowShown = false;
     String lastMarkerKlik;
-    private LatLng latLngMarkerAwal;
-
-    @Nullable
+    private List<Polyline> polylinePaths = new ArrayList<>();
+    private Integer duration, distance;
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        view = inflater.inflate( R.layout.fragment_home, container, false);
-        navigationView = getActivity().findViewById(R.id.nav_view);
-        navigationView.setCheckedItem(R.id.nav_home);
-        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-        SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
-        buttonCariRute = view.findViewById(R.id.buttonCariRute);
-        buttonCariRute.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                waypointS = new ArrayList<>();
-                waypointsMarkers = new ArrayList<>();
-                hitungRuteTerpendek();
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_hasil_cari);
 
-            }
-        });
-        buttonCariRute.setEnabled(false);
-        return view;
-    }
+        /*TOOLBAR*/
+        Toolbar toolbar = (Toolbar)findViewById(R.id.toolbarHasilCari);
+        toolbar.setSubtitleTextColor( ContextCompat.getColor(this, R.color.colorIcons) );
+        this.setTitle("Hasil Cari Rute");
+        setSupportActionBar(toolbar);
+        final Drawable upArrow = ContextCompat.getDrawable(this, R.drawable.ic_arrow_back_black_24dp);
+        upArrow.setColorFilter(ContextCompat.getColor(this, R.color.colorIcons), PorterDuff.Mode.SRC_ATOP);
+        getSupportActionBar().setHomeAsUpIndicator(upArrow);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        toolbar.setSubtitle( "19/08/2019 16:27" );
+        /*TOOLBAR*/
 
-    private void hitungRuteTerpendek() {
-        databaseReference.child("lokasi_utama").addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                TempatSampah tempatSampah = new TempatSampah(
-                        dataSnapshot.getKey(),
-                        dataSnapshot.child("latitude").getValue(Double.class),
-                        dataSnapshot.child("longtitude").getValue(Double.class),
-                        dataSnapshot.child("nama").getValue(String.class),
-                       2,
-                        2
-                );
-                waypointS.add(tempatSampah);
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        });
-        databaseReference.child("tempat_sampah").addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                for (DataSnapshot dataSnapshot1 : dataSnapshot.getChildren()){
-                    if(dataSnapshot1.child("status_terisi").getValue().toString().equals("2")){
-                        TempatSampah tempatSampah = new TempatSampah(
-                                dataSnapshot1.getKey(),
-                                dataSnapshot1.child("latitude").getValue(Double.class),
-                                dataSnapshot1.child("longtitude").getValue(Double.class),
-                                dataSnapshot1.child("nama").getValue(String.class),
-                                dataSnapshot1.child("status_terisi").getValue(Integer.class),
-                                dataSnapshot1.child("status_baterai").getValue(Integer.class)
-                        );
-                        waypointS.add(tempatSampah);
-                    }
-                }
-                Log.d("TAG", "Jumlah : "+waypointS.size());
-
-                for (int i=0;i<waypointS.size();i++){
-                    for (int j=i+1;j<waypointS.size();j++){
-                        String origin = waypointS.get(i).getNama();
-                        String destination = waypointS.get(j).getNama();
-                        LatLng latLngOrigin = new LatLng(waypointS.get(i).getLatitude(), waypointS.get(i).getLongtitude());
-                        LatLng latLngDestination = new LatLng(waypointS.get(j).getLatitude(), waypointS.get(j).getLongtitude());
-                        Log.d("TAG", "Origin : "+origin);
-                        Log.d("TAG", "Destination : "+destination);
-                        Log.d("TAG", "Jarak : "+getDistanceBetween(latLngOrigin,latLngDestination));
-                    }
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        });
-
-
-        /*Intent intent = new Intent(getContext(),HasilCariActivity.class);
-        intent.putExtra("origins", latLngMarkerAwal.latitude+","+latLngMarkerAwal.longitude);
-        intent.putExtra("wayPoints","");
-        intent.putExtra("destination",latLngMarkerAwal.latitude+","+latLngMarkerAwal.longitude);
-        startActivity(intent);*/
-    }
-
-
-    @Override
-    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-        //you can set the title for your toolbar here for different fragments different titles
-        getActivity().setTitle(R.string.app_name);
-    }
-
-    public void onActivityCreated(Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
+        /*MAP*/
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.mapHasil);
+        mapFragment.getMapAsync(HasilCariActivity.this);
+        /*MAP*/
     }
 
     @Override
@@ -176,7 +88,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Google
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 markerAwal = new MarkerOptions().position(new LatLng(dataSnapshot.child("latitude").getValue(Double.class), dataSnapshot.child("longtitude").getValue(Double.class)));
                 markerAwal.title(dataSnapshot.child("nama").getValue(String.class));
-                markerAwal.icon(bitmapDescriptorFromVector(getActivity(), R.drawable.ic_garbage_truck));
+                markerAwal.icon(bitmapDescriptorFromVector(HasilCariActivity.this, R.drawable.ic_garbage_truck));
                 mMap.addMarker(markerAwal);
                 CameraPosition googlePlex = CameraPosition.builder()
                         .target(new LatLng(dataSnapshot.child("latitude").getValue(Double.class), dataSnapshot.child("longtitude").getValue(Double.class)))
@@ -185,7 +97,6 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Google
                         .tilt(45)
                         .build();
                 mMap.animateCamera(CameraUpdateFactory.newCameraPosition(googlePlex));
-                latLngMarkerAwal=markerAwal.getPosition();
             }
 
             @Override
@@ -203,13 +114,13 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Google
                     String statusBaterai;
                     if (dataSnapshot1.child("status_terisi").getValue().toString().equals("0")){
                         statusTerisi="Kosong";
-                        markerOptions.icon(bitmapDescriptorFromVector(getActivity(),R.drawable.ic_trash_kosong));
+                        markerOptions.icon(bitmapDescriptorFromVector(HasilCariActivity.this,R.drawable.ic_trash_kosong));
                     }else if(dataSnapshot1.child("status_terisi").getValue().toString().equals("1")){
                         statusTerisi="Setengah";
-                        markerOptions.icon(bitmapDescriptorFromVector(getActivity(),R.drawable.ic_trash_setengah));
+                        markerOptions.icon(bitmapDescriptorFromVector(HasilCariActivity.this,R.drawable.ic_trash_setengah));
                     }else{
                         statusTerisi="Penuh";
-                        markerOptions.icon(bitmapDescriptorFromVector(getActivity(),R.drawable.ic_trash_penuh));
+                        markerOptions.icon(bitmapDescriptorFromVector(HasilCariActivity.this,R.drawable.ic_trash_penuh));
                     }
                     if (dataSnapshot1.child("status_baterai").getValue().toString().equals("0")){
                         statusBaterai="Kosong";
@@ -224,14 +135,13 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Google
                     hashMapStatusValue.put("statusBaterai",statusBaterai);
                     hashMapStatusValue.put("statusTerisi",statusTerisi);
                     hashMapHashMapStatus.put(markerOptions.getTitle(),hashMapStatusValue);
-                    mMap.setInfoWindowAdapter(new GoogleMapsInfoWindow(hashMapHashMapStatus));
+                    mMap.setInfoWindowAdapter(new HasilCariActivity.GoogleMapsInfoWindow(hashMapHashMapStatus));
                     if (isInfoWindowShown && marker.getTitle().equals(lastMarkerKlik)){
                         marker.showInfoWindow();
                         isInfoWindowShown=true;
                         lastMarkerKlik=marker.getTitle();
                     }
                 }
-                Log.d("TAG", "onMapReady: "+hashMapHashMapStatus);
             }
 
             @Override
@@ -242,7 +152,13 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Google
 
         mMap.setOnMarkerClickListener(this);
         mMap.setOnInfoWindowCloseListener(this);
-        buttonCariRute.setEnabled(true);
+
+        String wayPoints = "-8.158879,113.721337%7C-8.164735,113.717475%7C-8.145681,113.724939";
+        try {
+            new DirectionFinder(HasilCariActivity.this, "-8.141689, 113.721291", "-8.155527, 113.712525", wayPoints).execute();
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -294,7 +210,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Google
             txtTitle.setText(marker.getTitle());
             if (stringArrayListStatus.get(marker.getTitle()) == null){
                 tableStatusInfoWindow.setVisibility(View.GONE);
-                marker.setIcon(bitmapDescriptorFromVector(getActivity(),R.drawable.ic_garbage_truck));
+                marker.setIcon(bitmapDescriptorFromVector(HasilCariActivity.this,R.drawable.ic_garbage_truck));
                 imageViewMarkerInfoWindow.setBackgroundResource(R.drawable.truck);
             }else{
                 tableStatusInfoWindow.setVisibility(View.VISIBLE);
@@ -302,19 +218,52 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Google
                 txtStatusBaterai.setText(stringArrayListStatus.get(marker.getTitle()).get("statusBaterai"));
 
                 if (txtStatusTerisi.getText().equals("Kosong")){
-                    marker.setIcon(bitmapDescriptorFromVector(getActivity(),R.drawable.ic_trash_kosong));
+                    marker.setIcon(bitmapDescriptorFromVector(HasilCariActivity.this,R.drawable.ic_trash_kosong));
                     imageViewMarkerInfoWindow.setBackgroundResource(R.drawable.kosong);
                 }else if(txtStatusTerisi.getText().equals("Setengah")){
-                    marker.setIcon(bitmapDescriptorFromVector(getActivity(),R.drawable.ic_trash_setengah));
+                    marker.setIcon(bitmapDescriptorFromVector(HasilCariActivity.this,R.drawable.ic_trash_setengah));
                     imageViewMarkerInfoWindow.setBackgroundResource(R.drawable.setengah);
                 }else{
-                    marker.setIcon(bitmapDescriptorFromVector(getActivity(),R.drawable.ic_trash_penuh));
+                    marker.setIcon(bitmapDescriptorFromVector(HasilCariActivity.this,R.drawable.ic_trash_penuh));
                     imageViewMarkerInfoWindow.setBackgroundResource(R.drawable.penuh);
                 }
             }
 
             return viewGoogleMapsInfoWindow;
         }
+    }
+
+    @Override
+    public void onDirectionFinderStart() {
+        duration=0;
+        distance=0;
+        if (polylinePaths != null) {
+            for (Polyline polyline:polylinePaths ) {
+                polyline.remove();
+            }
+        }
+    }
+
+    @Override
+    public void onDirectionFinderSuccess(List<Route> routes) {
+        polylinePaths = new ArrayList<>();
+        for (Route route : routes) {
+            /*distance=distance+route.distance.value;
+            duration=duration+route.duration.value;*/
+            //mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(route.startLocation, 16));
+
+            PolylineOptions polylineOptions = new PolylineOptions().
+                    geodesic(true).
+                    color(R.color.colorAccent).
+                    width(10);
+
+            for (int i = 0; i < route.points.size(); i++)
+                polylineOptions.add(route.points.get(i));
+
+            polylinePaths.add(mMap.addPolyline(polylineOptions));
+        }
+        Log.d("TAG", "distance: " + routes.get(0).distance.text);
+        Log.d("TAG", "duration: " + routes.get(0).duration.text);
     }
 
     private BitmapDescriptor bitmapDescriptorFromVector(Context context, int vectorResId) {
@@ -326,17 +275,19 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Google
         return BitmapDescriptorFactory.fromBitmap(bitmap);
     }
 
-    public static Double getDistanceBetween(LatLng latLon1, LatLng latLon2) {
-        if (latLon1 == null || latLon2 == null)
-            return null;
-        float[] result = new float[1];
-        Location.distanceBetween(latLon1.latitude, latLon1.longitude,
-                latLon2.latitude, latLon2.longitude, result);
-        return (double) result[0];
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                super.onBackPressed();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     @Override
-    public void onPause() {
-        super.onPause();
+    public boolean onCreateOptionsMenu(Menu menu) {
+        return super.onCreateOptionsMenu(menu);
     }
 }

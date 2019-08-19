@@ -75,6 +75,22 @@ public class DBDataSource {
         return historis;
     }
 
+    public ArrayList<Histori> getLastHistori() {
+        ArrayList<Histori> historis = new ArrayList<Histori>();
+
+        Cursor cursor = database.query(DBHelperSqlLite.TABLE_NAME_HISTORI,
+                allColumnsHistori, null, null, null, null, DBHelperSqlLite.TANGGAL + "DESC", "1");
+
+        cursor.moveToFirst();
+        while (!cursor.isAfterLast()) {
+            Histori histori= cursorToHistori(cursor);
+            historis.add(histori);
+            cursor.moveToNext();
+        }
+        cursor.close();
+        return historis;
+    }
+
     public void hapusHistoriSatu(long idHistori){
         database.delete(DBHelperSqlLite.TABLE_NAME_HISTORI, "id_histori = "+idHistori, null);
         database.delete(DBHelperSqlLite.TABLE_NAME_DETAIL_HISTORI, "id_histori_detail = "+idHistori, null);

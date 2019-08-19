@@ -84,12 +84,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private void displaySelectedScreen(int itemId) {
         int id = itemId;
         if (id == R.id.nav_home) {
-            fragment = new HomeFragment(0,null);
+            fragment = new HomeFragment();
         } else if(id == R.id.nav_history){
             fragment = new HistoriFragment();
         } else if (id == R.id.nav_logout) {
             sessionManager.logout();
-
         }
 
         if (fragment != null) {

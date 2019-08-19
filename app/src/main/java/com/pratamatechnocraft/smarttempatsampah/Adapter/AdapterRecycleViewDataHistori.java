@@ -53,12 +53,7 @@ public class AdapterRecycleViewDataHistori extends RecyclerView.Adapter<AdapterR
         holder.cardViewDataHistori.setOnClickListener( new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Fragment fragment = new HomeFragment(0,listItemHistori.getIdHistori());
-                FragmentManager fragmentManager =new HistoriFragment().getChildFragmentManager();
-                FragmentTransaction ft = fragmentManager.beginTransaction();
-                ft.replace(R.id.screen_area, fragment);
-                ft.addToBackStack(null);
-                ft.commit();
+
             }
         });
     }

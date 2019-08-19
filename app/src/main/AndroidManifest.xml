@@ -20,6 +20,7 @@
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/google_maps_key" />
+
         <activity
             android:name=".SplashActivity"
             android:label="@string/app_name"
@@ -45,6 +46,13 @@
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.pratamatechnocraft.smarttempatsampah.SplashActivity" />
+        </activity>
+        <activity android:name=".HasilCariActivity"
+            android:label="@string/app_name"
+            android:parentActivityName=".MainActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.pratamatechnocraft.smarttempatsampah.MainActivity" />
         </activity>
     </application>
 
