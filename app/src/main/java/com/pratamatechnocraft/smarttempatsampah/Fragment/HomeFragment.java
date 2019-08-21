@@ -47,6 +47,8 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.pratamatechnocraft.smarttempatsampah.HasilCariActivity;
 import com.pratamatechnocraft.smarttempatsampah.Model.TempatSampah;
 import com.pratamatechnocraft.smarttempatsampah.R;
+import com.pratamatechnocraft.smarttempatsampah.Utils.Dijkstra;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -126,18 +128,15 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Google
                     }
                 }
                 Log.d("TAG", "Jumlah : "+waypointS.size());
-
+                Dijkstra dijkstra = new Dijkstra();
+                Double shortestDistance=0.0;
                 for (int i=0;i<waypointS.size();i++){
-                    for (int j=i+1;j<waypointS.size();j++){
-                        String origin = waypointS.get(i).getNama();
-                        String destination = waypointS.get(j).getNama();
-                        LatLng latLngOrigin = new LatLng(waypointS.get(i).getLatitude(), waypointS.get(i).getLongtitude());
-                        LatLng latLngDestination = new LatLng(waypointS.get(j).getLatitude(), waypointS.get(j).getLongtitude());
-                        Log.d("TAG", "Origin : "+origin);
-                        Log.d("TAG", "Destination : "+destination);
-                        Log.d("TAG", "Jarak : "+getDistanceBetween(latLngOrigin,latLngDestination));
-                    }
+                    dijkstra.add(waypointS.get(i).getKey(),waypointS.get(i).getLongtitude(),waypointS.get(i).getLatitude());
                 }
+                dijkstra.compute();
+                dijkstra.shortest_route().remove(0);
+                Log.d("TAG", "Shortest Route: "+dijkstra.shortest_route());
+
             }
 
             @Override

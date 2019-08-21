@@ -1,44 +1,147 @@
 package com.pratamatechnocraft.smarttempatsampah.Utils;
 
-import org.json.JSONArray;
+import android.location.Location;
 
+import com.google.android.gms.maps.model.LatLng;
+
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Dijkstra{
-    /*private HashMap<String, HashMap<String, Double>> locations = new HashMap<String, HashMap<String, Double>>();
-    private HashMap<String, Double> longitudes = new HashMap<String, Double>();
-    private HashMap<String, Double> latitudes = new HashMap<String, Double>();
-    private JSONArray shortest_route = new JSONArray();
-    private JSONArray shortest_routes = new JSONArray();
+    private List<HashMap<String, HashMap<String, Double>>> locations = new ArrayList<>();
+    private HashMap<String, Double> longitudes = new HashMap<>();
+    private HashMap<String, Double> latitudes = new HashMap<>();
+    private List<String> shortest_route = new ArrayList<>();
+    private List<List<String>> shortest_routes = new ArrayList<>();
     private Double shortest_distance = 0.0;
-    private JSONArray all_routes = new JSONArray();
+    private List<List<String>> all_routes = new ArrayList<>();
 
     public void add(String name, Double longitude, Double latitude) {
-        HashMap<String, Double> lokasi = new HashMap<String, Double>();
+        HashMap<String, Double> lokasi = new HashMap<>();
         lokasi.put("longitude", longitude);
         lokasi.put("latitude", latitude);
-        this.locations.put(name, lokasi);
+        HashMap<String, HashMap<String, Double>> value = new HashMap<>();
+        value.put(name,lokasi);
+        this.locations.add(value);
     }
 
     public void compute() {
-        HashMap<String, HashMap<String, Double>> locations = this.locations;
-
-        for (Map.Entry<String, HashMap<String, Double>> location : locations.entrySet()) {
-            this.longitudes.put(location.getKey(),location.getValue().get("longitude"));
-            this.longitudes.put(location.getKey(),location.getValue().get("latitude"));
+        List<HashMap<String, HashMap<String, Double>>> locations = this.locations;
+        for (int i=0;i<locations.size();i++) {
+            for (Map.Entry<String, HashMap<String, Double>> location : locations.get(i).entrySet()) {
+                this.longitudes.put(location.getKey(), location.getValue().get("longitude"));
+                this.latitudes.put(location.getKey(), location.getValue().get("latitude"));
+            }
         }
 
-        locations = this.locations;
+        List<String> location = new ArrayList<>();
+        for (int i=0;i<this.locations.size();i++) {
+            String key1 = null;
+            for (Map.Entry<String, HashMap<String, Double>> key : this.locations.get(i).entrySet()){
+                key1=key.getKey();
+            }
+            location.add(key1);
+        }
 
-        this.all_routes = this.array_permutations(locations);
+        //this.all_routes = this.array_permutations(location,new ArrayList<String>());
+        this.all_routes = this.permute(location);
+        for (int i=0;i<this.all_routes.size();i++) {
+            double total=0.0;
+            for (int j=0;j<this.all_routes.get(i).size();j++){
+                if (j<location.size()-1){
+                    Double latitude1=this.latitudes.get(all_routes.get(i).get(j));
+                    Double longtitude1=this.longitudes.get(all_routes.get(i).get(j));
+                    Double latitude2=this.latitudes.get(all_routes.get(i).get(j+1));
+                    Double longtitude2=this.longitudes.get(all_routes.get(i).get(j+1));
+                    total += this.getDistanceBetween(new LatLng(latitude1, longtitude1), new LatLng(latitude2, longtitude2));
+                }
+            }
+           /* Log.d("TAG", "total "+i+": "+total);
+            List<String> distance = new ArrayList<>();
+            distance.add(String.valueOf(total));
+            *//*this.all_routes.add(i , distance);
+            Log.d("TAG", "all_rote : "+this.all_routes);*/
+            if (total<this.shortest_distance || this.shortest_distance==0.0){
+                this.shortest_distance = total;
+                this.shortest_route = all_routes.get(i);
+                this.shortest_routes = new ArrayList<>();
+            }
+            if (total == this.shortest_distance){
+                this.shortest_routes.add(all_routes.get(i));
+            }
+        }
     }
 
-    private HashMap<String, HashMap<String, Double>> array_permutations(HashMap<String, HashMap<String, Double>> items){
-        HashMap<String, HashMap<String, Double>> all_permutations;
-        if (items.isEmpty()){
-            all_permutations =
+    private List<List<String>> permute(List<String> arr) {
+        List<List<String>> list = new ArrayList<>();
+        permuteHelper(list, new ArrayList<String>(), arr);
+        return list;
+    }
+
+    private void permuteHelper(List<List<String>> list, List<String> resultList, List<String> arr){
+
+        // Base case
+        if(resultList.size() == arr.size()){
+            list.add(new ArrayList<>(resultList));
+        }
+        else{
+            for(int i = 0; i < arr.size(); i++){
+
+                if(resultList.contains(arr.get(i)))
+                {
+                    // If element already exists in the list then skip
+                    continue;
+                }
+                // Choose element
+                resultList.add(arr.get(i));
+                // Explore
+                permuteHelper(list, resultList, arr);
+                // Unchoose element
+                resultList.remove(resultList.size() - 1);
+            }
+        }
+    }
+
+    private List<String> array_permutations(List<String> items, List<String> perms) {
+        List<String> all_permutations = new ArrayList<>();
+        if (items.isEmpty()) {
+            all_permutations = perms;
+        }  else {
+            for (int i = items.size() - 1; i >= 0; --i) {
+                List<String> newitems = items;
+                List<String> newperms = perms;
+                List<String> foo = newitems.subList(1,i);
+                newperms.add(newperms.hashCode(),foo.toString());
+                this.array_permutations(newitems, newperms);
+            }
         }
         return all_permutations;
-    }*/
+    }
+
+    private static Double getDistanceBetween(LatLng latLon1, LatLng latLon2) {
+        if (latLon1 == null || latLon2 == null)
+            return null;
+        float[] result = new float[1];
+        Location.distanceBetween(latLon1.latitude, latLon1.longitude,
+                latLon2.latitude, latLon2.longitude, result);
+        return (double) result[0];
+    }
+
+    public List<String> shortest_route(){
+        return this.shortest_route;
+    }
+    // returns an array of any routes that are exactly the same distance as the shortest (ie the shortest backwards normally)
+    public List<List<String>> matching_shortest_routes(){
+        return this.shortest_routes;
+    }
+    // the shortest possible distance to travel
+    public Double shortest_distance(){
+        return this.shortest_distance;
+    }
+    // returns an array of all the possible routes
+    public List<List<String>> routes(){
+        return this.all_routes;
+    }
 }
