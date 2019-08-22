@@ -19,7 +19,8 @@ public class DBDataSource {
     private String[] allColumnsDetailHistori = {
             dbHelperSqlLite.ID_HISTORI_DETAIL,
             dbHelperSqlLite.ID_TEMPAT_SAMPAH,
-            dbHelperSqlLite.NO_URUT
+            dbHelperSqlLite.LATITUDE,
+            dbHelperSqlLite.LONGTITUDE
     };
 
     public DBDataSource(Context context){ dbHelperSqlLite = new DBHelperSqlLite(context); }
@@ -79,7 +80,7 @@ public class DBDataSource {
         ArrayList<Histori> historis = new ArrayList<Histori>();
 
         Cursor cursor = database.query(DBHelperSqlLite.TABLE_NAME_HISTORI,
-                allColumnsHistori, null, null, null, null, DBHelperSqlLite.TANGGAL + "DESC", "1");
+                allColumnsHistori, null, null, null, null, DBHelperSqlLite.TANGGAL + " DESC", "1");
 
         cursor.moveToFirst();
         while (!cursor.isAfterLast()) {
@@ -112,12 +113,13 @@ public class DBDataSource {
         }
     }
 
-    public DetailHistori createDetailHistori(long idHistoriDetail, String idTempatSampah, int noUrut){
+    public DetailHistori createDetailHistori(long idHistoriDetail, String idTempatSampah, String latitude,String longtitude){
 
         ContentValues values = new ContentValues();
         values.put(dbHelperSqlLite.ID_HISTORI_DETAIL, idHistoriDetail);
         values.put(dbHelperSqlLite.ID_TEMPAT_SAMPAH, idTempatSampah);
-        values.put(dbHelperSqlLite.NO_URUT, noUrut);
+        values.put(dbHelperSqlLite.LATITUDE, latitude);
+        values.put(dbHelperSqlLite.LONGTITUDE, longtitude);
 
         long insertId = database.insert(dbHelperSqlLite.TABLE_NAME_DETAIL_HISTORI, null,
                 values);
@@ -140,7 +142,8 @@ public class DBDataSource {
         detailHistori.setIdDetail(cursor.getLong(0));
         detailHistori.setIdHistoriDetail(cursor.getLong(1));
         detailHistori.setIdTempatSampah(cursor.getString(2));
-        detailHistori.setNoUrut(cursor.getInt(3));
+        detailHistori.setLatitude(cursor.getString(3));
+        detailHistori.setLongtitude(cursor.getString(4));
         return detailHistori;
     }
 

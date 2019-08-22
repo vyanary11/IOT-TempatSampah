@@ -6,8 +6,10 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -36,6 +38,9 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.pratamatechnocraft.smarttempatsampah.Database.DBDataSource;
+import com.pratamatechnocraft.smarttempatsampah.Model.DetailHistori;
+import com.pratamatechnocraft.smarttempatsampah.Model.Histori;
 import com.pratamatechnocraft.smarttempatsampah.Utils.directionLib.DirectionFinder;
 import com.pratamatechnocraft.smarttempatsampah.Utils.directionLib.DirectionFinderListener;
 import com.pratamatechnocraft.smarttempatsampah.Utils.directionLib.Route;
@@ -55,11 +60,13 @@ public class HasilCariActivity extends AppCompatActivity implements OnMapReadyCa
     String lastMarkerKlik;
     private List<Polyline> polylinePaths = new ArrayList<>();
     private Integer duration, distance;
+    private DBDataSource dbDataSource;
+    private Intent intent;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_hasil_cari);
-
+        intent = getIntent();
         /*TOOLBAR*/
         Toolbar toolbar = (Toolbar)findViewById(R.id.toolbarHasilCari);
         toolbar.setSubtitleTextColor( ContextCompat.getColor(this, R.color.colorIcons) );
@@ -69,7 +76,8 @@ public class HasilCariActivity extends AppCompatActivity implements OnMapReadyCa
         upArrow.setColorFilter(ContextCompat.getColor(this, R.color.colorIcons), PorterDuff.Mode.SRC_ATOP);
         getSupportActionBar().setHomeAsUpIndicator(upArrow);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        toolbar.setSubtitle( "19/08/2019 16:27" );
+        loadHistori();
+        toolbar.setSubtitle( intent.getStringExtra("tanggal") );
         /*TOOLBAR*/
 
         /*MAP*/
@@ -153,9 +161,21 @@ public class HasilCariActivity extends AppCompatActivity implements OnMapReadyCa
         mMap.setOnMarkerClickListener(this);
         mMap.setOnInfoWindowCloseListener(this);
 
-        String wayPoints = "-8.158879,113.721337%7C-8.164735,113.717475%7C-8.145681,113.724939";
+        loadHistori();
+    }
+
+    private void loadHistori(){
+        dbDataSource.open();
+        String wayPoints = "";
+        String pemisah;
+        for (int i=0;i<dbDataSource.getDetailHistori(Long.parseLong(intent.getStringExtra("idHistori"))).size();i++){
+            if (i==dbDataSource.getDetailHistori(Long.parseLong(intent.getStringExtra("idHistori"))).size()){pemisah="";}else{pemisah="%7C";}
+            String longtitude=dbDataSource.getDetailHistori(Long.parseLong(intent.getStringExtra("idHistori"))).get(i).getLongtitude().toString().trim();
+            String latitude=dbDataSource.getDetailHistori(Long.parseLong(intent.getStringExtra("idHistori"))).get(i).getLatitude().toString().trim();
+            wayPoints=wayPoints+latitude+","+longtitude+pemisah;
+        }
         try {
-            new DirectionFinder(HasilCariActivity.this, "-8.141689, 113.721291", "-8.155527, 113.712525", wayPoints).execute();
+            new DirectionFinder(HasilCariActivity.this, "-8.141689, 113.721291", "-8.141689, 113.721291", wayPoints).execute();
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
@@ -247,20 +267,25 @@ public class HasilCariActivity extends AppCompatActivity implements OnMapReadyCa
     @Override
     public void onDirectionFinderSuccess(List<Route> routes) {
         polylinePaths = new ArrayList<>();
+        int counter=1;
         for (Route route : routes) {
             /*distance=distance+route.distance.value;
             duration=duration+route.duration.value;*/
             //mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(route.startLocation, 16));
-
             PolylineOptions polylineOptions = new PolylineOptions().
                     geodesic(true).
-                    color(R.color.colorAccent).
-                    width(10);
+                    width(15);
+            if (counter%2==0) {
+                polylineOptions.color(Color.RED);
+            }else{
+                polylineOptions.color(Color.BLUE);
+            }
 
             for (int i = 0; i < route.points.size(); i++)
                 polylineOptions.add(route.points.get(i));
 
             polylinePaths.add(mMap.addPolyline(polylineOptions));
+            counter++;
         }
         Log.d("TAG", "distance: " + routes.get(0).distance.text);
         Log.d("TAG", "duration: " + routes.get(0).duration.text);

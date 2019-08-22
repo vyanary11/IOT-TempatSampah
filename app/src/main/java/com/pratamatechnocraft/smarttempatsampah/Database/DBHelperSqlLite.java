@@ -16,9 +16,10 @@ public class DBHelperSqlLite extends SQLiteOpenHelper {
     public static final String ID_DETAIL = "id_detail";
     public static final String ID_HISTORI_DETAIL = "id_histori_detail";
     public static final String ID_TEMPAT_SAMPAH = "id_tempat_sampah";
-    public static final String NO_URUT = "no_urut";
+    public static final String LATITUDE = "latitude";
+    public static final String LONGTITUDE = "longtitude";
     private static final String db_name ="iot_tempat_sampah.db";
-    private static final int db_version=1;
+    private static final int db_version=3;
 
     // Perintah SQL untuk membuat tabel database baru
     private static final String db_create_histori = "create table "
@@ -31,7 +32,8 @@ public class DBHelperSqlLite extends SQLiteOpenHelper {
             + ID_DETAIL +" integer primary key autoincrement, "
             + ID_HISTORI_DETAIL +" integer (10) not null, "
             + ID_TEMPAT_SAMPAH + " varchar(100) not null,"
-            + NO_URUT + " integer (100) not null);";
+            + LATITUDE + " varchar (100) not null, "
+            + LONGTITUDE + " varchar (100) not null);";
 
     public DBHelperSqlLite(Context context) {
         super(context, db_name, null, db_version);

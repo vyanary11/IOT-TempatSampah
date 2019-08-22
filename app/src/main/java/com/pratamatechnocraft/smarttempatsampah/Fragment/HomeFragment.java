@@ -44,14 +44,19 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.pratamatechnocraft.smarttempatsampah.Database.DBDataSource;
 import com.pratamatechnocraft.smarttempatsampah.HasilCariActivity;
+import com.pratamatechnocraft.smarttempatsampah.Model.DetailHistori;
+import com.pratamatechnocraft.smarttempatsampah.Model.Histori;
 import com.pratamatechnocraft.smarttempatsampah.Model.TempatSampah;
 import com.pratamatechnocraft.smarttempatsampah.R;
 import com.pratamatechnocraft.smarttempatsampah.Utils.Dijkstra;
+import com.pratamatechnocraft.smarttempatsampah.Utils.TanggalSekarang;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class HomeFragment extends Fragment implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener, GoogleMap.OnInfoWindowCloseListener {
     private GoogleMap mMap;
@@ -67,6 +72,9 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Google
     private boolean isInfoWindowShown = false;
     String lastMarkerKlik;
     private LatLng latLngMarkerAwal;
+    Histori histori = null;
+    DetailHistori detailHistori = null;
+    private DBDataSource dbDataSource;
 
     @Nullable
     @Override
@@ -92,7 +100,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Google
     }
 
     private void hitungRuteTerpendek() {
-        databaseReference.child("lokasi_utama").addValueEventListener(new ValueEventListener() {
+        databaseReference.child("lokasi_utama").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 TempatSampah tempatSampah = new TempatSampah(
@@ -111,7 +119,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Google
 
             }
         });
-        databaseReference.child("tempat_sampah").addValueEventListener(new ValueEventListener() {
+        databaseReference.child("tempat_sampah").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 for (DataSnapshot dataSnapshot1 : dataSnapshot.getChildren()){
@@ -129,13 +137,35 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Google
                 }
                 Log.d("TAG", "Jumlah : "+waypointS.size());
                 Dijkstra dijkstra = new Dijkstra();
-                Double shortestDistance=0.0;
                 for (int i=0;i<waypointS.size();i++){
                     dijkstra.add(waypointS.get(i).getKey(),waypointS.get(i).getLongtitude(),waypointS.get(i).getLatitude());
                 }
                 dijkstra.compute();
+                Log.d("TAG", "Shortest Distance: "+dijkstra.shortest_distance());
                 dijkstra.shortest_route().remove(0);
                 Log.d("TAG", "Shortest Route: "+dijkstra.shortest_route());
+                dijkstra.hasil().remove(0);
+                dbDataSource = new DBDataSource(getContext());
+                dbDataSource.open();
+                TanggalSekarang tanggalSekarang = new TanggalSekarang();
+                histori = dbDataSource.createHistori(tanggalSekarang.getTanggal()+" "+tanggalSekarang.getWaktu());
+                for (int i=0;i<dijkstra.hasil().size();i++){
+                    String key1 = null;
+                    for (Map.Entry<String, HashMap<String, Double>> key : dijkstra.hasil().get(i).entrySet()){
+                        key1=key.getKey();
+                    }
+                    detailHistori = dbDataSource.createDetailHistori(
+                            dbDataSource.getLastHistori().get(0).getIdHistori(),
+                            key1,
+                            dijkstra.hasil().get(i).get(key1).get("latitude").toString(),
+                            dijkstra.hasil().get(i).get(key1).get("longtitude").toString()
+                    );
+                }
+
+                Intent intent = new Intent(getContext(),HasilCariActivity.class);
+                intent.putExtra("tanggal", tanggalSekarang.getTanggal()+" "+tanggalSekarang.getWaktu());
+                intent.putExtra("idHistori",  dbDataSource.getLastHistori().get(0).getIdHistori());
+                startActivity(intent);
 
             }
 
@@ -144,13 +174,6 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Google
 
             }
         });
-
-
-        /*Intent intent = new Intent(getContext(),HasilCariActivity.class);
-        intent.putExtra("origins", latLngMarkerAwal.latitude+","+latLngMarkerAwal.longitude);
-        intent.putExtra("wayPoints","");
-        intent.putExtra("destination",latLngMarkerAwal.latitude+","+latLngMarkerAwal.longitude);
-        startActivity(intent);*/
     }
 
 

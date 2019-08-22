@@ -4,7 +4,8 @@ public class DetailHistori {
     long idDetail;
     long idHistoriDetail;
     String idTempatSampah;
-    int noUrut;
+    String latitude;
+    String longtitude;
 
     public long getIdHistoriDetail() {
         return idHistoriDetail;
@@ -22,13 +23,6 @@ public class DetailHistori {
         this.idTempatSampah = idTempatSampah;
     }
 
-    public int getNoUrut() {
-        return noUrut;
-    }
-
-    public void setNoUrut(int noUrut) {
-        this.noUrut = noUrut;
-    }
 
     public long getIdDetail() {
         return idDetail;
@@ -36,5 +30,21 @@ public class DetailHistori {
 
     public void setIdDetail(long idDetail) {
         this.idDetail = idDetail;
+    }
+
+    public String getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(String latitude) {
+        this.latitude = latitude;
+    }
+
+    public String getLongtitude() {
+        return longtitude;
+    }
+
+    public void setLongtitude(String longtitude) {
+        this.longtitude = longtitude;
     }
 }
