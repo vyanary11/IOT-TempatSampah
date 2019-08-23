@@ -1,17 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
 
     <LinearLayout
-        android:padding="8dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
         <androidx.cardview.widget.CardView
+            android:layout_marginVertical="8dp"
+            android:layout_marginHorizontal="16dp"
             android:id="@+id/cardViewDataHistori"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -19,11 +20,6 @@
             android:clickable="true"
             android:foreground="?android:attr/selectableItemBackground"
             app:cardBackgroundColor="@color/cardview_light_background">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -46,7 +42,8 @@
                             android:text="Hari"
                             android:textAllCaps="true"
                             android:textColor="@android:color/black"
-                            android:textSize="14sp"
+                            android:textSize="18sp"
+                            android:layout_marginBottom="5dp"
                             android:textStyle="bold" />
 
                         <TextView
@@ -67,20 +64,20 @@
                         android:text="Jam"
                         android:textAlignment="viewEnd"
                         android:textColor="@color/colorAccent"
-                        android:textSize="12sp"
+                        android:textSize="14sp"
                         android:textStyle="bold" />
                 </LinearLayout>
 
-            </LinearLayout>
 
         </androidx.cardview.widget.CardView>
 
         <ImageButton
-            android:layout_margin="8dp"
-            style="@style/Widget.AppCompat.Button.Borderless"
             android:id="@+id/imageButtonHapusHistori"
+            style="@style/Widget.AppCompat.Button.Borderless"
             android:layout_width="32dp"
             android:layout_height="32dp"
+            android:layout_marginVertical="16dp"
+            android:layout_marginRight="16dp"
             app:srcCompat="@drawable/ic_delete_black_24dp" />
 
     </LinearLayout>

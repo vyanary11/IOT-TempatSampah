@@ -1,5 +1,7 @@
 package com.pratamatechnocraft.smarttempatsampah.Fragment;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -44,6 +46,7 @@ public class HistoriFragment extends Fragment {
     private List<Histori> listItemHistoris;
     private DBDataSource dbDataSource;
     private HashMap<String, String> user;
+    private AlertDialog alertDialog;
 
     @Nullable
     @Override
@@ -62,11 +65,11 @@ public class HistoriFragment extends Fragment {
         refreshDataHistori.setOnRefreshListener( new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                adapterDataHistori = new AdapterRecycleViewDataHistori( listItemHistoris, getContext());
+                adapterDataHistori = new AdapterRecycleViewDataHistori( listItemHistoris, getContext(), noDataHistori);
                 recyclerViewDataHistori.setAdapter( adapterDataHistori );
                 listItemHistoris.clear();
                 adapterDataHistori.notifyDataSetChanged();
-                loadHistori(user.get(SessionManager.USER_ID));
+                loadHistori();
             }
         } );
 
@@ -83,7 +86,7 @@ public class HistoriFragment extends Fragment {
         //you can set the title for your toolbar here for different fragments different titles
         getActivity().setTitle("Histori");
         setHasOptionsMenu( true );
-        loadHistori(user.get(SessionManager.USER_ID));
+        loadHistori();
         statusFragment=false;
     }
 
@@ -97,17 +100,17 @@ public class HistoriFragment extends Fragment {
     public void onResume() {
         super.onResume();
         if (statusFragment==true) {
-            adapterDataHistori = new AdapterRecycleViewDataHistori( listItemHistoris, getContext());
+            adapterDataHistori = new AdapterRecycleViewDataHistori( listItemHistoris, getContext(), noDataHistori);
             recyclerViewDataHistori.setAdapter( adapterDataHistori );
             listItemHistoris.clear();
             adapterDataHistori.notifyDataSetChanged();
-            loadHistori(user.get(SessionManager.USER_ID));
+            loadHistori();
 
         }
     }
 
 
-    private void loadHistori(String userId){
+    private void loadHistori(){
         progressBarDataHistori.setVisibility(View.VISIBLE);
         listItemHistoris = new ArrayList<>();
         listItemHistoris = dbDataSource.getSemuaHistori();
@@ -124,7 +127,7 @@ public class HistoriFragment extends Fragment {
     private void setUpRecycleView() {
         recyclerViewDataHistori.setHasFixedSize(true);
         recyclerViewDataHistori.setLayoutManager(new LinearLayoutManager(getContext()));
-        adapterDataHistori = new AdapterRecycleViewDataHistori( listItemHistoris, getContext());
+        adapterDataHistori = new AdapterRecycleViewDataHistori( listItemHistoris, getContext(), noDataHistori);
         recyclerViewDataHistori.setAdapter( adapterDataHistori );
         adapterDataHistori.notifyDataSetChanged();
     }
@@ -150,7 +153,29 @@ public class HistoriFragment extends Fragment {
         menu.findItem(R.id.ic_hapus_semua).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
-                return false;
+                AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getContext());
+                alertDialogBuilder.setMessage("Yakin Ingin Menghapus Semua Histori ??");
+                alertDialogBuilder.setPositiveButton("Iya",
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface arg0, int arg1) {
+                                dbDataSource = new DBDataSource(getContext());
+                                dbDataSource.open();
+                                dbDataSource.hapusSemua();
+                                loadHistori();
+                            }
+                        });
+
+                alertDialogBuilder.setNegativeButton("Tidak",new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        alertDialog.dismiss();
+                    }
+                });
+
+                alertDialog = alertDialogBuilder.create();
+                alertDialog.show();
+                return true;
             }
         });
     }

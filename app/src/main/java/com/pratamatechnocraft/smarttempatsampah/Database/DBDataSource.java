@@ -65,7 +65,7 @@ public class DBDataSource {
         ArrayList<Histori> historis = new ArrayList<Histori>();
 
         Cursor cursor = database.query(DBHelperSqlLite.TABLE_NAME_HISTORI,
-                allColumnsHistori, null, null, null, null, null);
+                allColumnsHistori, null, null, null, null, DBHelperSqlLite.ID_HISTORI + " DESC");
 
         cursor.moveToFirst();
         while (!cursor.isAfterLast()) {

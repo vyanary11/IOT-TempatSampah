@@ -5,7 +5,7 @@ import java.text.SimpleDateFormat;
 
 public class TanggalSekarang {
     public String getTanggal() {
-        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
+        DateFormat dateFormat = new SimpleDateFormat("EEEE, dd-MM-yyyy");
         Date date = new Date();
         return dateFormat.format(date);
     }
