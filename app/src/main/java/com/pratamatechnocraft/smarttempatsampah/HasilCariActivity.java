@@ -76,7 +76,6 @@ public class HasilCariActivity extends AppCompatActivity implements OnMapReadyCa
         upArrow.setColorFilter(ContextCompat.getColor(this, R.color.colorIcons), PorterDuff.Mode.SRC_ATOP);
         getSupportActionBar().setHomeAsUpIndicator(upArrow);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        loadHistori();
         toolbar.setSubtitle( intent.getStringExtra("tanggal") );
         /*TOOLBAR*/
 
@@ -165,13 +164,15 @@ public class HasilCariActivity extends AppCompatActivity implements OnMapReadyCa
     }
 
     private void loadHistori(){
+        dbDataSource = new DBDataSource(this);
         dbDataSource.open();
         String wayPoints = "";
         String pemisah;
-        for (int i=0;i<dbDataSource.getDetailHistori(Long.parseLong(intent.getStringExtra("idHistori"))).size();i++){
-            if (i==dbDataSource.getDetailHistori(Long.parseLong(intent.getStringExtra("idHistori"))).size()){pemisah="";}else{pemisah="%7C";}
-            String longtitude=dbDataSource.getDetailHistori(Long.parseLong(intent.getStringExtra("idHistori"))).get(i).getLongtitude().toString().trim();
-            String latitude=dbDataSource.getDetailHistori(Long.parseLong(intent.getStringExtra("idHistori"))).get(i).getLatitude().toString().trim();
+        for (int i=0;i<dbDataSource.getDetailHistori(intent.getLongExtra("idHistori",0)).size();i++){
+            if (i==dbDataSource.getDetailHistori(intent.getLongExtra("idHistori",0)).size()-1){pemisah="";}else{pemisah="%7C";}
+            String longtitude=dbDataSource.getDetailHistori(intent.getLongExtra("idHistori",0)).get(i).getLongtitude().toString().trim();
+            String latitude=dbDataSource.getDetailHistori(intent.getLongExtra("idHistori",0)).get(i).getLatitude().toString().trim();
+            Log.d("TAG", "waypoint: "+wayPoints);
             wayPoints=wayPoints+latitude+","+longtitude+pemisah;
         }
         try {
@@ -274,12 +275,13 @@ public class HasilCariActivity extends AppCompatActivity implements OnMapReadyCa
             //mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(route.startLocation, 16));
             PolylineOptions polylineOptions = new PolylineOptions().
                     geodesic(true).
+                    color(Color.BLUE).
                     width(15);
-            if (counter%2==0) {
+            /*if (counter%2==0) {
                 polylineOptions.color(Color.RED);
             }else{
                 polylineOptions.color(Color.BLUE);
-            }
+            }*/
 
             for (int i = 0; i < route.points.size(); i++)
                 polylineOptions.add(route.points.get(i));

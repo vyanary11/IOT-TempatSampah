@@ -1,6 +1,7 @@
 package com.pratamatechnocraft.smarttempatsampah.Utils;
 
 import android.location.Location;
+import android.util.Log;
 
 import com.google.android.gms.maps.model.LatLng;
 
@@ -14,6 +15,7 @@ public class Dijkstra{
     private HashMap<String, Double> longitudes = new HashMap<>();
     private HashMap<String, Double> latitudes = new HashMap<>();
     private List<String> shortest_route = new ArrayList<>();
+    private List<HashMap<String, HashMap<String, Double>>> hasil= new ArrayList<>();
     private List<List<String>> shortest_routes = new ArrayList<>();
     private Double shortest_distance = 0.0;
     private List<List<String>> all_routes = new ArrayList<>();
@@ -122,16 +124,24 @@ public class Dijkstra{
     public List<List<String>> routes(){
         return this.all_routes;
     }
-    public  List<HashMap<String, HashMap<String, Double>>> hasil(){
+
+    public void setHasil(){
         List<HashMap<String, HashMap<String, Double>>> hasil= new ArrayList<>();
-        HashMap<String, Double> lokasi = new HashMap<>();
-        HashMap<String, HashMap<String, Double>> maker = new HashMap<>();
-        for (int i=0;i<shortest_route.size();i++){
-            lokasi.put("latitude", this.latitudes.get(shortest_route.get(i)));
-            lokasi.put("longtitude", this.longitudes.get(shortest_route.get(i)));
-            maker.put(shortest_route.get(i),lokasi);
+        for (int i=0;i<this.shortest_route().size();i++){
+            HashMap<String, Double> lokasi = new HashMap<>();
+            HashMap<String, HashMap<String, Double>> maker = new HashMap<>();
+            lokasi.put("latitude", this.latitudes.get(this.shortest_route().get(i)));
+            lokasi.put("longtitude", this.longitudes.get(this.shortest_route().get(i)));
+            maker.put(this.shortest_route().get(i),lokasi);
             hasil.add(maker);
+            Log.d("TAG", "setHasil: "+hasil);
         }
-        return hasil;
+
+        hasil.remove(0);
+        this.hasil=hasil;
+    }
+
+    public  List<HashMap<String, HashMap<String, Double>>> hasil(){
+        return this.hasil;
     }
 }

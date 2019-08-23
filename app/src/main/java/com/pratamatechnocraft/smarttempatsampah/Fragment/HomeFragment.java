@@ -135,16 +135,13 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Google
                         waypointS.add(tempatSampah);
                     }
                 }
-                Log.d("TAG", "Jumlah : "+waypointS.size());
                 Dijkstra dijkstra = new Dijkstra();
                 for (int i=0;i<waypointS.size();i++){
                     dijkstra.add(waypointS.get(i).getKey(),waypointS.get(i).getLongtitude(),waypointS.get(i).getLatitude());
                 }
                 dijkstra.compute();
-                Log.d("TAG", "Shortest Distance: "+dijkstra.shortest_distance());
-                dijkstra.shortest_route().remove(0);
-                Log.d("TAG", "Shortest Route: "+dijkstra.shortest_route());
-                dijkstra.hasil().remove(0);
+                dijkstra.setHasil();
+                Log.d("TAG", "Shortest Route: "+dijkstra.hasil());
                 dbDataSource = new DBDataSource(getContext());
                 dbDataSource.open();
                 TanggalSekarang tanggalSekarang = new TanggalSekarang();
@@ -161,7 +158,6 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Google
                             dijkstra.hasil().get(i).get(key1).get("longtitude").toString()
                     );
                 }
-
                 Intent intent = new Intent(getContext(),HasilCariActivity.class);
                 intent.putExtra("tanggal", tanggalSekarang.getTanggal()+" "+tanggalSekarang.getWaktu());
                 intent.putExtra("idHistori",  dbDataSource.getLastHistori().get(0).getIdHistori());

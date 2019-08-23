@@ -19,7 +19,7 @@ public class DBHelperSqlLite extends SQLiteOpenHelper {
     public static final String LATITUDE = "latitude";
     public static final String LONGTITUDE = "longtitude";
     private static final String db_name ="iot_tempat_sampah.db";
-    private static final int db_version=3;
+    private static final int db_version=11;
 
     // Perintah SQL untuk membuat tabel database baru
     private static final String db_create_histori = "create table "
@@ -52,6 +52,8 @@ public class DBHelperSqlLite extends SQLiteOpenHelper {
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         Log.w(DBHelperSqlLite.class.getName(),"Upgrading database from version " + oldVersion + " to "
                 + newVersion + ", which will destroy all old data");
+        db.execSQL("DELETE FROM "+ TABLE_NAME_DETAIL_HISTORI);
+        db.execSQL("DELETE FROM "+ TABLE_NAME_HISTORI);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME_HISTORI);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME_DETAIL_HISTORI);
         onCreate(db);

@@ -23,7 +23,6 @@ public class DetailHistori {
         this.idTempatSampah = idTempatSampah;
     }
 
-
     public long getIdDetail() {
         return idDetail;
     }

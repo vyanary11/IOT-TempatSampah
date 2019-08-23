@@ -17,6 +17,7 @@ public class DBDataSource {
             dbHelperSqlLite.TANGGAL
     };
     private String[] allColumnsDetailHistori = {
+            dbHelperSqlLite.ID_DETAIL,
             dbHelperSqlLite.ID_HISTORI_DETAIL,
             dbHelperSqlLite.ID_TEMPAT_SAMPAH,
             dbHelperSqlLite.LATITUDE,
@@ -149,7 +150,7 @@ public class DBDataSource {
 
 
     public ArrayList<DetailHistori> getDetailHistori(long idHistori) {
-        ArrayList<DetailHistori> detailHistoris = new ArrayList<DetailHistori>();
+        ArrayList<DetailHistori> detailHistoris = new ArrayList<>();
 
         Cursor cursor = database.query(DBHelperSqlLite.TABLE_NAME_DETAIL_HISTORI,
                 allColumnsDetailHistori, "id_histori_detail = "+idHistori, null, null, null, null);
