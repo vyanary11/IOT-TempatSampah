@@ -62,6 +62,21 @@ public class HasilCariActivity extends AppCompatActivity implements OnMapReadyCa
     private Integer duration, distance;
     private DBDataSource dbDataSource;
     private Intent intent;
+    private Integer[] colorPolyline = {
+            R.color.amber_500,
+            R.color.blue_500,
+            R.color.blue_grey_500,
+            R.color.brown_500,
+            R.color.cyan_500,
+            R.color.deep_orange_500,
+            R.color.deep_purple_500,
+            R.color.green_500,
+            R.color.grey_500,
+            R.color.indigo_500,
+            R.color.light_blue_500,
+            R.color.light_green_500,
+            R.color.lime_500
+    };
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -168,15 +183,17 @@ public class HasilCariActivity extends AppCompatActivity implements OnMapReadyCa
         dbDataSource.open();
         String wayPoints = "";
         String pemisah;
-        for (int i=0;i<dbDataSource.getDetailHistori(intent.getLongExtra("idHistori",0)).size();i++){
+        for (int i=1;i<dbDataSource.getDetailHistori(intent.getLongExtra("idHistori",0)).size();i++){
             if (i==dbDataSource.getDetailHistori(intent.getLongExtra("idHistori",0)).size()-1){pemisah="";}else{pemisah="%7C";}
             String longtitude=dbDataSource.getDetailHistori(intent.getLongExtra("idHistori",0)).get(i).getLongtitude().toString().trim();
             String latitude=dbDataSource.getDetailHistori(intent.getLongExtra("idHistori",0)).get(i).getLatitude().toString().trim();
             Log.d("TAG", "waypoint: "+wayPoints);
             wayPoints=wayPoints+latitude+","+longtitude+pemisah;
         }
+        String latitude = dbDataSource.getDetailHistori(intent.getLongExtra("idHistori",0)).get(0).getLatitude();
+        String longtitude = dbDataSource.getDetailHistori(intent.getLongExtra("idHistori",0)).get(0).getLongtitude();
         try {
-            new DirectionFinder(HasilCariActivity.this, "-8.141689, 113.721291", "-8.141689, 113.721291", wayPoints).execute();
+            new DirectionFinder(HasilCariActivity.this, latitude+", "+longtitude, latitude+", "+longtitude, wayPoints).execute();
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
@@ -268,26 +285,25 @@ public class HasilCariActivity extends AppCompatActivity implements OnMapReadyCa
     @Override
     public void onDirectionFinderSuccess(List<Route> routes) {
         polylinePaths = new ArrayList<>();
-        int counter=1;
+        int counter =0;
         for (Route route : routes) {
+
             /*distance=distance+route.distance.value;
             duration=duration+route.duration.value;*/
             //mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(route.startLocation, 16));
             PolylineOptions polylineOptions = new PolylineOptions().
                     geodesic(true).
-                    color(Color.BLUE).
                     width(15);
-            /*if (counter%2==0) {
-                polylineOptions.color(Color.RED);
-            }else{
-                polylineOptions.color(Color.BLUE);
-            }*/
-
-            for (int i = 0; i < route.points.size(); i++)
+            Log.d("TAG", "onDirectionFinderSuccess: "+route.points.size());
+            for (int i = 0; i < route.points.size(); i++){
                 polylineOptions.add(route.points.get(i));
+                if (i % 16 == 0) {
+                    polylineOptions.color(colorPolyline[counter]);
+                    counter++;
+                }
+                polylinePaths.add(mMap.addPolyline(polylineOptions));
+            }
 
-            polylinePaths.add(mMap.addPolyline(polylineOptions));
-            counter++;
         }
         Log.d("TAG", "distance: " + routes.get(0).distance.text);
         Log.d("TAG", "duration: " + routes.get(0).duration.text);

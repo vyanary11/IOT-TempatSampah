@@ -134,10 +134,7 @@ public class Dijkstra{
             lokasi.put("longtitude", this.longitudes.get(this.shortest_route().get(i)));
             maker.put(this.shortest_route().get(i),lokasi);
             hasil.add(maker);
-            Log.d("TAG", "setHasil: "+hasil);
         }
-
-        hasil.remove(0);
         this.hasil=hasil;
     }
 

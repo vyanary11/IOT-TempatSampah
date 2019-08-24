@@ -141,7 +141,6 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Google
                 }
                 dijkstra.compute();
                 dijkstra.setHasil();
-                Log.d("TAG", "Shortest Route: "+dijkstra.hasil());
                 dbDataSource = new DBDataSource(getContext());
                 dbDataSource.open();
                 TanggalSekarang tanggalSekarang = new TanggalSekarang();
