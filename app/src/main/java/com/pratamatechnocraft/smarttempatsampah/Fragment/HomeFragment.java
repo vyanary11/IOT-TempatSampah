@@ -137,7 +137,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Google
                 }
                 Dijkstra dijkstra = new Dijkstra();
                 for (int i=0;i<waypointS.size();i++){
-                    dijkstra.add(waypointS.get(i).getKey(),waypointS.get(i).getLongtitude(),waypointS.get(i).getLatitude());
+                    dijkstra.add(waypointS.get(i).getNama(),waypointS.get(i).getLongtitude(),waypointS.get(i).getLatitude());
                 }
                 dijkstra.compute();
                 dijkstra.setHasil();

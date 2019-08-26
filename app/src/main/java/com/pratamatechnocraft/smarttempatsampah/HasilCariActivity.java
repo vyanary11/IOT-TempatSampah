@@ -4,19 +4,22 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TableLayout;
 import android.widget.TextView;
@@ -33,14 +36,15 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.pratamatechnocraft.smarttempatsampah.Adapter.AdapterRecycleViewTimeLine;
 import com.pratamatechnocraft.smarttempatsampah.Database.DBDataSource;
-import com.pratamatechnocraft.smarttempatsampah.Model.DetailHistori;
-import com.pratamatechnocraft.smarttempatsampah.Model.Histori;
+import com.pratamatechnocraft.smarttempatsampah.Model.TimeLine;
 import com.pratamatechnocraft.smarttempatsampah.Utils.directionLib.DirectionFinder;
 import com.pratamatechnocraft.smarttempatsampah.Utils.directionLib.DirectionFinderListener;
 import com.pratamatechnocraft.smarttempatsampah.Utils.directionLib.Route;
@@ -62,21 +66,14 @@ public class HasilCariActivity extends AppCompatActivity implements OnMapReadyCa
     private Integer duration, distance;
     private DBDataSource dbDataSource;
     private Intent intent;
-    private Integer[] colorPolyline = {
-            R.color.amber_500,
-            R.color.blue_500,
-            R.color.blue_grey_500,
-            R.color.brown_500,
-            R.color.cyan_500,
-            R.color.deep_orange_500,
-            R.color.deep_purple_500,
-            R.color.green_500,
-            R.color.grey_500,
-            R.color.indigo_500,
-            R.color.light_blue_500,
-            R.color.light_green_500,
-            R.color.lime_500
-    };
+    private Button buttonNavigasikan;
+    String wayPoints = "";
+
+    private RecyclerView recyclerViewTimeLine;
+    private ArrayList<TimeLine> timeLines;
+    private AdapterRecycleViewTimeLine adapterRecycleViewTimeLine;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -98,6 +95,33 @@ public class HasilCariActivity extends AppCompatActivity implements OnMapReadyCa
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.mapHasil);
         mapFragment.getMapAsync(HasilCariActivity.this);
         /*MAP*/
+
+        //Inisialisasi LinearLayout sebagai base bottom sheet view
+        final View bottomsheet = findViewById(R.id.bs_ll);
+
+        //Assign LinearLayout tersebut ke BottomSheetBehavior
+        final BottomSheetBehavior bottomSheetBehavior = BottomSheetBehavior.from(bottomsheet);
+
+        //Set BottomSheet view supaya bisa disembunyikan semuanya
+        bottomSheetBehavior.setHideable(true);
+
+        /*Inisialisasi Button*/
+        buttonNavigasikan = findViewById(R.id.buttonNavigasikan);
+
+        buttonNavigasikan.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dbDataSource = new DBDataSource(HasilCariActivity.this);
+                dbDataSource.open();
+                String latitude = dbDataSource.getDetailHistori(intent.getLongExtra("idHistori",0)).get(0).getLatitude();
+                String longtitude = dbDataSource.getDetailHistori(intent.getLongExtra("idHistori",0)).get(0).getLongtitude();
+                Intent intent = new Intent(android.content.Intent.ACTION_VIEW,
+                        Uri.parse("https://www.google.com/maps/dir/?api=1&origin="+latitude+","+longtitude+"&destination="+latitude+","+longtitude+"&travelmode=driving&waypoints="+wayPoints));
+                startActivity(intent);
+            }
+        });
+
+        recyclerViewTimeLine = findViewById(R.id.recyclerViewTimeLine);
     }
 
     @Override
@@ -179,17 +203,29 @@ public class HasilCariActivity extends AppCompatActivity implements OnMapReadyCa
     }
 
     private void loadHistori(){
+        timeLines = new ArrayList<>();
         dbDataSource = new DBDataSource(this);
         dbDataSource.open();
-        String wayPoints = "";
         String pemisah;
+        TimeLine awal = new TimeLine(
+                dbDataSource.getDetailHistori(intent.getLongExtra("idHistori",0)).get(0).getIdTempatSampah()
+        );
+        timeLines.add(awal);
         for (int i=1;i<dbDataSource.getDetailHistori(intent.getLongExtra("idHistori",0)).size();i++){
             if (i==dbDataSource.getDetailHistori(intent.getLongExtra("idHistori",0)).size()-1){pemisah="";}else{pemisah="%7C";}
             String longtitude=dbDataSource.getDetailHistori(intent.getLongExtra("idHistori",0)).get(i).getLongtitude().toString().trim();
             String latitude=dbDataSource.getDetailHistori(intent.getLongExtra("idHistori",0)).get(i).getLatitude().toString().trim();
             Log.d("TAG", "waypoint: "+wayPoints);
             wayPoints=wayPoints+latitude+","+longtitude+pemisah;
+            TimeLine timeLine = new TimeLine(
+                    dbDataSource.getDetailHistori(intent.getLongExtra("idHistori",0)).get(i).getIdTempatSampah()
+            );
+            timeLines.add(timeLine);
         }
+        TimeLine akhir = new TimeLine(
+                dbDataSource.getDetailHistori(intent.getLongExtra("idHistori",0)).get(0).getIdTempatSampah()
+        );
+        timeLines.add(akhir);
         String latitude = dbDataSource.getDetailHistori(intent.getLongExtra("idHistori",0)).get(0).getLatitude();
         String longtitude = dbDataSource.getDetailHistori(intent.getLongExtra("idHistori",0)).get(0).getLongtitude();
         try {
@@ -197,6 +233,12 @@ public class HasilCariActivity extends AppCompatActivity implements OnMapReadyCa
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
+
+        recyclerViewTimeLine.setHasFixedSize(true);
+        recyclerViewTimeLine.setLayoutManager(new LinearLayoutManager(this));
+        adapterRecycleViewTimeLine = new AdapterRecycleViewTimeLine( timeLines, this);
+        recyclerViewTimeLine.setAdapter( adapterRecycleViewTimeLine );
+        adapterRecycleViewTimeLine.notifyDataSetChanged();
     }
 
     @Override
@@ -285,28 +327,20 @@ public class HasilCariActivity extends AppCompatActivity implements OnMapReadyCa
     @Override
     public void onDirectionFinderSuccess(List<Route> routes) {
         polylinePaths = new ArrayList<>();
-        int counter =0;
         for (Route route : routes) {
 
-            /*distance=distance+route.distance.value;
-            duration=duration+route.duration.value;*/
+            distance=distance+route.distance.value;
+            duration=duration+route.duration.value;
             //mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(route.startLocation, 16));
             PolylineOptions polylineOptions = new PolylineOptions().
                     geodesic(true).
+                    color(R.color.colorAccent).
                     width(15);
-            Log.d("TAG", "onDirectionFinderSuccess: "+route.points.size());
             for (int i = 0; i < route.points.size(); i++){
                 polylineOptions.add(route.points.get(i));
-                if (i % 16 == 0) {
-                    polylineOptions.color(colorPolyline[counter]);
-                    counter++;
-                }
-                polylinePaths.add(mMap.addPolyline(polylineOptions));
             }
-
+            polylinePaths.add(mMap.addPolyline(polylineOptions));
         }
-        Log.d("TAG", "distance: " + routes.get(0).distance.text);
-        Log.d("TAG", "duration: " + routes.get(0).duration.text);
     }
 
     private BitmapDescriptor bitmapDescriptorFromVector(Context context, int vectorResId) {
