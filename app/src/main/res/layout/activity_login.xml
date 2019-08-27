@@ -78,7 +78,8 @@
             android:text="Login"
             android:textAllCaps="true"
             android:textColor="@color/colorIcons"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:background=""/>
 
         <ProgressBar
             android:visibility="gone"
