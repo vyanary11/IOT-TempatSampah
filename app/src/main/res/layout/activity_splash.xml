@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".SplashActivity"
-    android:background="@color/colorPrimaryDark">
+    android:background="@drawable/green">
 
     <LinearLayout
         android:id="@+id/linearLayout"
@@ -26,10 +26,10 @@
             android:layout_width="150dp"
             android:layout_height="150dp"
             android:layout_gravity="center"
-            android:src="@mipmap/ic_launcher_round"
+            android:src="@drawable/logo"
             app:civ_border_color="#fff"
-            app:civ_border_width="2dp"
-            app:srcCompat="@mipmap/ic_launcher_round" />
+            app:civ_border_width="0dp"
+            app:srcCompat="@drawable/logo" />
 
         <TextView
             android:id="@+id/textView"
