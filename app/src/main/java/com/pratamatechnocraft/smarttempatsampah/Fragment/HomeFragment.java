@@ -129,7 +129,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Google
                                 dataSnapshot1.child("latitude").getValue(Double.class),
                                 dataSnapshot1.child("longtitude").getValue(Double.class),
                                 dataSnapshot1.child("nama").getValue(String.class),
-                                dataSnapshot1.child("status_terisi").getValue(Integer.class),
+                                Integer.parseInt(dataSnapshot1.child("status_terisi").getValue(String.class)),
                                 dataSnapshot1.child("status_baterai").getValue(Integer.class)
                         );
                         waypointS.add(tempatSampah);
@@ -214,6 +214,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Google
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 for (DataSnapshot dataSnapshot1 : dataSnapshot.getChildren()){
+                    Log.d("TAG", "Status Tempat Sampah : "+dataSnapshot1.child("status_terisi"));
                     MarkerOptions markerOptions = new MarkerOptions().position(new LatLng(dataSnapshot1.child("latitude").getValue(Double.class), dataSnapshot1.child("longtitude").getValue(Double.class)));
                     markerOptions.title(dataSnapshot1.child("nama").getValue().toString().trim());
                     String statusTerisi;
