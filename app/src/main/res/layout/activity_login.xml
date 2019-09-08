@@ -21,10 +21,10 @@
             android:layout_alignParentTop="true"
             android:layout_centerHorizontal="true"
             android:layout_gravity="center"
-            android:src="@drawable/logo"
+            android:src="@mipmap/ic_launcher_round"
             app:civ_border_color="#fff"
             app:civ_border_width="0dp"
-            app:srcCompat="@drawable/logo" />
+            app:srcCompat="@mipmap/ic_launcher_round" />
 
         <TextView
             android:layout_marginTop="20dp"
