@@ -11,8 +11,7 @@
         android:layout_height="match_parent"
         android:orientation="vertical"
         android:background="@drawable/green"
-        android:padding="20dp"
-        tools:context=".Login">
+        android:padding="20dp">
 
         <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/imageView"
